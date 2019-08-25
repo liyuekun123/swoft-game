@@ -60,7 +60,7 @@ class Packet {
                 return self::packFormat("packet data is empty", 100008);
             }
 
-            $result = self::packFormat("OK", 0, $result);
+//            $result = self::packFormat("OK", 0, $result);
             $result['cmd'] = $cmd['cmd'];
             $result['scmd'] = $cmd['scmd'];
             $result['len']  = $len + 4;
@@ -72,11 +72,11 @@ class Packet {
 
 //测试发送protobuf 发送请求
 $client = new swoole_client(SWOOLE_SOCK_TCP);
-if (!$client->connect('127.0.0.1', 20001, -1))
+if (!$client->connect('127.0.0.1', 18309, -1))
 {
     exit("connect failed. Error: {$client->errCode}\n");
 }
-$data = Packet::packFormat('OK', 0, array('data' => 'this is a system msg'));
+$data =  'this is a system msg';
 $back = Packet::packEncode($data, 2, 213);
 $client->send($back);
 $res = $client->recv();
