@@ -36,6 +36,9 @@
 			<option value="CancelCard">cancelCard</option>
 			<option value="IsDouble">isDouble</option>
 			<option value="GetSingerCard">getSingerCard</option>
+            <option value="JoinRoom">joinRoom</option>
+            <option value="ExitRoom">exitRoom</option>
+            <option value="RoomNotify">roomNotify</option>
 		</select>
 
         请求数据：<input style="HEIGHT: 21px; WIDTH: 300px" size="17" id="SendText" value="send data test">&nbsp;

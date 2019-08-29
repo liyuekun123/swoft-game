@@ -52,4 +52,13 @@ var Resp = {
     broadcast: function(data) {
         document.getElementById('msgText').innerHTML  += JSON.stringify(data) + '\n';
     },
+    joinRoom: function(data) {
+        document.getElementById('msgText').innerHTML  += JSON.stringify(data) + '\n';
+    },
+    exitRoom: function(data) {
+        document.getElementById('msgText').innerHTML  += JSON.stringify(data) + '\n';
+    },
+    roomNotify: function(data) {
+        document.getElementById('msgText').innerHTML  += JSON.stringify(data) + '\n';
+    },
 }

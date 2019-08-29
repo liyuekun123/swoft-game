@@ -28,6 +28,9 @@ class Route
             SubCmd::IS_DOUBLE_REQ =>'IsDouble',
             SubCmd::GET_SINGER_CARD_REQ =>'GetSingerCard',
             SubCmd::CHAT_MSG_REQ =>'ChatMsg',
+            SubCmd::JOIN_ROOM_REQ => 'JoinRoom',
+            SubCmd::EXIT_ROOM_REQ => 'ExitRoom',
+            SubCmd::ROOM_NOTIFY_REQ => 'RoomNotify',
         ),
     );
 }

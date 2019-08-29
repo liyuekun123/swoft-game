@@ -29,4 +29,11 @@ class SubCmd
     const GET_SINGER_CARD_RESP = 212;	//获取翻倍单张卡牌响应，服务端使用
     const CHAT_MSG_REQ = 213;			//聊天消息请求，客户端使用
     const CHAT_MSG_RESP = 214;			//聊天消息响应，服务端使用
+    const JOIN_ROOM_REQ = 215;          //[client]加入房间请求
+    const JOIN_ROOM_RESP = 216;         //[server]加入房间请求
+    const EXIT_ROOM_REQ = 217;          //[client]退出房间请求
+    const EXIT_ROOM_RESP = 218;         //[server]退出房间请求
+    const ROOM_NOTIFY_REQ = 219;        //[client]房间通信
+    const ROOM_NOTIFY_RESP = 220;       //[server]房间通信
+    
 }

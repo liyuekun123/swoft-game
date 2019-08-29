@@ -1,6 +1,7 @@
 <?php declare(strict_types=1);
 
 namespace App\WebSocket;
+
 use Swoft\Http\Message\Request;
 use Swoft\Http\Message\Response;
 use Swoft\WebSocket\Server\Annotation\Mapping\OnClose;
@@ -34,6 +35,11 @@ class GameModule
     const USER_INFO_KEY = 'user:info:%s';
 
     /**
+     * fd对应的account
+     */
+    const FD_USER_ACCOUNT_KEY = 'fd:account:%s';
+
+    /**
      * 设置key过期时间， 设置为7天
      */
     const EXPIRE = 7 * 24 * 60 * 60;
@@ -53,21 +59,21 @@ class GameModule
     /**
      * @OnOpen()
      * @param Request $request
-     * @param int     $fd
+     * @param int $fd
      */
     public function onOpen(Request $request, int $fd): void
     {
         $cookie = $request->getCookieParams();
-        if(isset($cookie['USER_INFO'])) {
+        if (isset($cookie['USER_INFO'])) {
             $uinfo = json_decode($cookie['USER_INFO'], true);
             //允许连接， 并记录用户信息
             $uinfo['fd'] = $fd;
             $user_info_key = sprintf(self::USER_INFO_KEY, $uinfo['account']);
             $data = Redis::get($user_info_key);
             //之前信息存在， 清除之前的连接
-            if(!empty($data)) {
+            if (!empty($data)) {
                 $data = json_decode($data, true);
-                if(isset($data['fd'])) {
+                if (isset($data['fd'])) {
                     //处理双开的情况
                     $this->loginFail($data['fd'], '1');
                     server()->disconnect($data['fd']);
@@ -78,6 +84,8 @@ class GameModule
             //保存登陆信息
             $this->user_info[$uinfo['account']] = $uinfo;
             Redis::set($user_info_key, json_encode($uinfo), self::EXPIRE);
+            $fd_user_account_key = self::FdAccountCacheKey($fd);
+            Redis::set($fd_user_account_key, $uinfo['account'], self::EXPIRE);
         } else {
             $this->loginFail($fd, '2');
         }
@@ -92,19 +100,20 @@ class GameModule
     {
         Log::show(" Message: client #{$frame->fd} push success Mete: \n{");
         $data = Packet::packDecode($frame->data);
-        if(isset($data['code']) && $data['code'] == 0 && isset($data['msg']) && $data['msg'] == 'OK') {
-            Log::show('Recv <<<  cmd='.$data['cmd'].'  scmd='.$data['scmd'].'  len='.$data['len'].'  data='.json_encode($data['data']));
+        if (isset($data['code']) && $data['code'] == 0 && isset($data['msg']) && $data['msg'] == 'OK') {
+            Log::show('Recv <<<  cmd=' . $data['cmd'] . '  scmd=' . $data['scmd'] . '  len=' . $data['len'] . '  data=' . json_encode($data['data']));
             //转发请求，代理模式处理,websocket路由到相关逻辑
+            $data['fd'] = $frame->fd;
             $data['serv'] = $server;
             $obj = new Dispatch($data);
             $back = "<center><h1>404 Not Found </h1></center><hr><center>swoft</center>\n";
-            if(!empty($obj->getStrategy())) {
+            if (!empty($obj->getStrategy())) {
                 $back = $obj->exec();
-                if($back) {
+                if ($back) {
                     $server->push($frame->fd, $back, WEBSOCKET_OPCODE_BINARY);
                 }
             }
-            Log::show('Tcp Strategy <<<  data='.$back);
+            Log::show('Tcp Strategy <<<  data=' . $back);
         } else {
             Log::show($data['msg']);
         }
@@ -117,12 +126,17 @@ class GameModule
      *
      * @OnClose()
      * @param Server $server
-     * @param int    $fd
+     * @param int $fd
      */
     public function onClose(Server $server, int $fd): void
     {
         //清除登陆信息变量
         $this->loginFail($fd, '3');
+    }
+
+    public static function FdAccountCacheKey($fd): string
+    {
+        return sprintf(self::FD_USER_ACCOUNT_KEY, $fd);
     }
 
     /**
@@ -134,10 +148,12 @@ class GameModule
     {
         //原封不动发回去
         $server = server();
-        if($server->getClientInfo($fd) !== false) {
-            $data = Packet::packFormat('OK', 0, array('data' => 'login fail'.$msg));
+        if ($server->getClientInfo($fd) !== false) {
+            $data = Packet::packFormat('OK', 0, array('data' => 'login fail' . $msg));
             $back = Packet::packEncode($data, MainCmd::CMD_SYS, SubCmd::LOGIN_FAIL_RESP);
             $server->push($fd, $back, WEBSOCKET_OPCODE_BINARY);
+            $fd_user_account_key = GameModule::FdAccountCacheKey($fd);
+            Redis::del($fd_user_account_key);
         }
     }
 }
