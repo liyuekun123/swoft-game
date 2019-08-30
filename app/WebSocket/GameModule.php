@@ -2,6 +2,7 @@
 
 namespace App\WebSocket;
 
+use App\WebSocket\Game\Core\Room;
 use Swoft\Http\Message\Request;
 use Swoft\Http\Message\Response;
 use Swoft\WebSocket\Server\Annotation\Mapping\OnClose;
@@ -130,6 +131,7 @@ class GameModule
      */
     public function onClose(Server $server, int $fd): void
     {
+        Log::show("OnClose#{$fd}");
         //清除登陆信息变量
         $this->loginFail($fd, '3');
     }
@@ -153,6 +155,10 @@ class GameModule
             $back = Packet::packEncode($data, MainCmd::CMD_SYS, SubCmd::LOGIN_FAIL_RESP);
             $server->push($fd, $back, WEBSOCKET_OPCODE_BINARY);
             $fd_user_account_key = GameModule::FdAccountCacheKey($fd);
+            $account = Redis::get($fd_user_account_key);
+            if($account){
+                Room::ExitRoom($account);
+            }
             Redis::del($fd_user_account_key);
         }
     }
