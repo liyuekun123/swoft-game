@@ -53,6 +53,7 @@ return [
 //            \Swoft\View\Middleware\ViewMiddleware::class,
             \App\Http\Middleware\SomeMiddleware::class,
 //            \Swoft\Smarty\Middleware\SmartyMiddleware::class
+            \Swoft\Swoole\Tracker\Middleware\SwooleTrackerMiddleware::class,
         ],
     ],
     'db'               => [
