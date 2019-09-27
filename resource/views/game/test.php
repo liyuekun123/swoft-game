@@ -4,7 +4,8 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>Testing swoole-h5game</title>  
 </head>  
-<body>  
+<body>
+<canvas id="canvas" height="300" width="300"></canvas>
     <form align=center>
     <h1>swoole-h5game Test工具</h1>  
     <div >  
